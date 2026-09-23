@@ -1,0 +1,17 @@
+# This project has no build step and no dependencies to install — p5.js and
+# MediaPipe are loaded from CDNs at runtime (see README section 6). These
+# entries just keep incidental local files out of the repo.
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# Node, only if tooling is added later
+node_modules/
+npm-debug.log*
+
+# Scratch files from local syntax checks
+*.check.mjs

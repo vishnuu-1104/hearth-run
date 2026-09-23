@@ -1,0 +1,526 @@
+:root {
+  --bg: #FDF9EE;
+  --panel-bg: rgba(255, 253, 248, 0.96);
+  --panel-border: #D2D7E2;
+  --text: #3B2926;
+  --text-muted: #625A64;
+  --accent: #7A96BF;
+  --accent-strong: #D1B3D5;
+  --danger: #956D75;
+  --success: #7A96BF;
+  --warning: #D4B09B;
+  --focus-ring: #6980A0;
+  --radius: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* The game toggles screens/modal/HUD/camera-preview via the `hidden`
+   attribute from JS. Several rules below set an unconditional `display`,
+   which ties in CSS specificity with the browser's default
+   `[hidden]{display:none}` — as author styles, ours would otherwise win
+   that tie and keep the element visibly showing even while `hidden` is
+   set. This forces `hidden` to always take priority. */
+[hidden] {
+  display: none !important;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  overflow: hidden;
+}
+
+#app {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+#game-canvas-host {
+  position: absolute;
+  inset: 0;
+}
+
+#game-canvas-host canvas {
+  display: block;
+}
+
+/* ---------------------------- Focus & a11y ---------------------------- */
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
+.sr-live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ------------------------------- Screens ------------------------------- */
+
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 20;
+}
+
+.screen-overlay {
+  background: rgba(59, 41, 38, 0.35);
+  backdrop-filter: blur(2px);
+}
+
+.panel {
+  background: var(--panel-bg);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius);
+  padding: 32px 36px;
+  max-width: 580px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(59, 41, 38, 0.18);
+}
+
+.panel h1 {
+  margin: 0 0 6px;
+  font-size: 1.8rem;
+  color: var(--text);
+}
+
+.panel h2 {
+  font-size: 1.1rem;
+  color: var(--danger);
+  margin-top: 20px;
+}
+
+.tagline {
+  color: var(--text-muted);
+  margin-top: 0;
+}
+
+.muted {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.control-list {
+  padding-left: 20px;
+  line-height: 1.8;
+}
+
+/* ------------------------------- Buttons ------------------------------- */
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+
+.primary-button,
+.secondary-button,
+.text-button {
+  display: block;
+  width: 100%;
+  padding: 12px 18px;
+  margin-top: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.primary-button {
+  background: var(--accent-strong);
+  color: var(--text);
+}
+
+.primary-button:hover {
+  filter: brightness(0.97);
+}
+
+.secondary-button {
+  background: #EBD6C8;
+  color: var(--text);
+  border-color: var(--panel-border);
+}
+
+.text-button {
+  background: none;
+  color: var(--text-muted);
+  text-decoration: underline;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.icon-button {
+  background: rgba(59, 41, 38, 0.08);
+  color: var(--text);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 1rem;
+}
+
+/* ------------------------------ Mode select ------------------------------ */
+
+.mode-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 16px;
+}
+
+@media (max-width: 680px) {
+  .mode-cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+.mode-card {
+  background: #F6E2B4;
+  border: 1px solid var(--panel-border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.error-message {
+  color: var(--danger);
+  background: rgba(149, 109, 117, 0.12);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 16px;
+}
+
+.warning-message {
+  color: var(--text);
+  background: #F6E4BA;
+  border: 1px solid var(--warning);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 10px 0;
+}
+
+/* ------------------------------ Calibration ------------------------------ */
+
+.calibration-instruction {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--danger);
+  min-height: 2.4em;
+}
+
+.landmark-list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.landmark-list li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  background: #EDF1E2;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.landmark-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--danger);
+  flex-shrink: 0;
+}
+
+.landmark-list li[data-visible='true'] .landmark-dot {
+  background: #7A96BF;
+}
+
+.landmark-status-text {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* -------------------------------- Practice ------------------------------- */
+
+.practice-list {
+  list-style: none;
+  padding: 0;
+}
+
+.practice-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(59, 41, 38, 0.1);
+}
+
+.practice-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  color: transparent;
+  flex-shrink: 0;
+}
+
+.practice-check-done .practice-check {
+  border-color: #7A96BF;
+  color: #6980A0;
+  background: rgba(122, 150, 191, 0.15);
+}
+
+/* -------------------------------- Countdown -------------------------------- */
+
+.countdown-number {
+  font-size: 8rem;
+  font-weight: 800;
+  color: #FDF9EE;
+  text-shadow: 0 0 30px rgba(255, 240, 220, 0.5);
+}
+
+/* ---------------------------------- HUD ---------------------------------- */
+
+#hud {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 20px;
+  z-index: 30;
+  background: linear-gradient(to bottom, rgba(253, 249, 238, 0.85), transparent);
+}
+
+.hud-stat {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+
+.hud-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+#hud > .hud-stat + .hud-stat {
+  border-left: 1px solid rgba(59, 41, 38, 0.15);
+  padding-left: 18px;
+}
+
+.hud-energy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 120px;
+}
+
+.energy-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 6px;
+  background: rgba(59, 41, 38, 0.12);
+  overflow: hidden;
+}
+
+#energy-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #C0D6E0, #7A96BF);
+  transition: width 0.1s linear;
+}
+
+#hud button {
+  margin-left: auto;
+}
+
+#hud button + button {
+  margin-left: 8px;
+}
+
+.energy-hint {
+  position: absolute;
+  top: 68px;
+  left: 20px;
+  z-index: 30;
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: rgba(255, 253, 248, 0.85);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+/* ------------------------------ Gesture toast ------------------------------ */
+
+.toast {
+  position: absolute;
+  top: 90px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  background: #D1B3D5;
+  color: var(--text);
+  font-weight: 700;
+  padding: 8px 18px;
+  border-radius: 999px;
+  opacity: 0;
+  z-index: 30;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.toast-visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* --------------------------- Camera preview panel --------------------------- */
+
+#camera-preview-frame {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 160px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid var(--panel-border);
+  z-index: 35;
+  background: #000;
+}
+
+#live-video {
+  width: 100%;
+  display: block;
+  transform: scaleX(-1);
+}
+
+#tracking-indicator {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  right: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border-radius: 6px;
+  padding: 3px 6px;
+}
+
+#tracking-indicator .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-muted);
+}
+
+#tracking-indicator[data-status='TRACKING'] .dot { background: #7A96BF; }
+#tracking-indicator[data-status='LOST'] .dot { background: #956D75; }
+#tracking-indicator[data-status='ERROR'] .dot { background: #956D75; }
+#tracking-indicator[data-status='LOADING'] .dot { background: #D4B09B; }
+
+/* ---------------------------------- Modal ---------------------------------- */
+
+.modal {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(59, 41, 38, 0.4);
+}
+
+.help-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 12px;
+}
+
+.help-table th,
+.help-table td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid rgba(59, 41, 38, 0.12);
+  font-size: 0.88rem;
+}
+
+kbd {
+  background: rgba(59, 41, 38, 0.08);
+  border: 1px solid rgba(59, 41, 38, 0.2);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.85em;
+}
+
+/* ------------------------------ Settings rows ------------------------------ */
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.settings-row label {
+  flex: 1;
+  font-size: 0.9rem;
+}
+
+.final-stats {
+  font-size: 1.2rem;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid rgba(59, 41, 38, 0.12);
+  margin: 20px 0 4px;
+}
+
+/* ------------------------------ Reduced motion ------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .primary-button,
+  .secondary-button {
+    transition: none;
+  }
+}

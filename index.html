@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hearth Run — a webcam-controlled pastel house runner</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <p id="status-line" class="sr-live" role="status" aria-live="polite"></p>
+
+  <div id="app">
+    <div id="game-canvas-host" aria-hidden="true"></div>
+
+    <!-- One persistent, mirrored (CSS only) camera preview reused across every screen. -->
+    <div id="camera-preview-frame" hidden>
+      <video id="live-video" autoplay playsinline muted></video>
+      <span id="tracking-indicator" data-status="idle">
+        <span class="dot" aria-hidden="true"></span>
+        <span id="tracking-label">Camera</span>
+      </span>
+    </div>
+
+    <!-- ============================= HUD ============================= -->
+    <header id="hud" hidden>
+      <div class="hud-stat">
+        <span class="hud-label">Score</span>
+        <span id="score-value">0</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Distance</span>
+        <span id="distance-value">0m</span>
+      </div>
+      <div class="hud-stat">
+        <span class="hud-label">Speed</span>
+        <span id="speed-value">340</span>
+      </div>
+      <div class="hud-energy" title="Movement energy — march/swing your arms to raise this">
+        <span class="hud-label">Energy</span>
+        <div class="energy-track"><div id="energy-fill"></div></div>
+      </div>
+      <button id="btn-hud-pause" class="icon-button" aria-label="Pause game">&#10074;&#10074;</button>
+      <button id="btn-help-open" class="icon-button" aria-label="Show controls help">?</button>
+    </header>
+    <p id="energy-hint" class="energy-hint" hidden></p>
+
+    <div id="gesture-toast" class="toast" aria-hidden="true"></div>
+
+    <!-- ========================= WELCOME ========================= -->
+    <section id="screen-welcome" class="screen">
+      <div class="panel">
+        <h1>Hearth Run</h1>
+        <p class="tagline">A webcam-controlled dash through an endless pastel house.</p>
+        <p>
+          Run corridor to living room to bedroom and back again, dodging ottomans, cabinets, and
+          cushions while collecting warm little glow-lights. The twist:
+          <strong>your own body sets the pace</strong> — march and swing your arms in front of the
+          camera to speed up.
+        </p>
+        <h2>How you control it</h2>
+        <ul class="control-list">
+          <li><strong>March / swing your arms</strong> — build speed (keep it rhythmic!)</li>
+          <li><strong>Lean left / right</strong> — change lanes</li>
+          <li><strong>Raise both hands up together</strong> — jump over cushions</li>
+          <li><strong>Squat down</strong> — slide under tables</li>
+        </ul>
+        <p class="muted">
+          No camera, or prefer not to use one? The full game also works with just a keyboard.
+        </p>
+        <button id="btn-start" class="primary-button">Start</button>
+      </div>
+    </section>
+
+    <!-- ======================= MODE SELECT ======================= -->
+    <section id="screen-mode-select" class="screen" hidden>
+      <div class="panel">
+        <h1>Choose how to play</h1>
+        <div class="mode-cards">
+          <div class="mode-card">
+            <h2>Full-body mode</h2>
+            <p>Stand where your hands AND legs are visible. Marching in place plus arm swings gives the strongest speed boost.</p>
+            <button id="btn-mode-fullbody" class="primary-button">Full-body</button>
+          </div>
+          <div class="mode-card">
+            <h2>Seated mode</h2>
+            <p>Sitting at your desk? Arm movements alone control your speed, with the same lean-to-steer and raise-to-jump controls.</p>
+            <button id="btn-mode-seated" class="primary-button">Seated</button>
+          </div>
+          <div class="mode-card">
+            <h2>Keyboard mode</h2>
+            <p>No camera required. Hold a key to build speed, arrows to steer and jump.</p>
+            <button id="btn-mode-keyboard" class="secondary-button">Keyboard</button>
+          </div>
+        </div>
+        <p id="camera-error-message" class="error-message" role="alert" hidden></p>
+      </div>
+    </section>
+
+    <!-- ===================== PERMISSION EXPLANATION ===================== -->
+    <section id="screen-permission-info" class="screen" hidden>
+      <div class="panel">
+        <h1>Before we turn on your camera</h1>
+        <p>
+          Hearth Run tracks your body position to control the game — this needs camera access.
+          <strong>Your video is processed entirely on your own device.</strong> Nothing is uploaded,
+          recorded, or sent anywhere, and you can turn the camera off at any time from the pause menu.
+        </p>
+        <p class="muted">Your browser will now ask you to allow camera access for this page.</p>
+        <button id="btn-permission-allow" class="primary-button">Allow Camera</button>
+        <button id="btn-permission-keyboard-fallback" class="text-button">Use keyboard instead</button>
+        <p id="permission-error-message" class="error-message" role="alert" hidden></p>
+      </div>
+    </section>
+
+    <!-- ================= FRAMING + CALIBRATION ================= -->
+    <section id="screen-calibration" class="screen" hidden>
+      <div class="panel">
+        <h1>Framing &amp; Calibration</h1>
+        <p class="muted">Stand or sit so your whole upper body is visible, with room to swing your arms (and march, in full-body mode).</p>
+        <ul id="landmark-visibility-list" class="landmark-list">
+          <li data-landmark="shoulders" data-visible="false"><span class="landmark-dot" aria-hidden="true"></span>Shoulders <span class="landmark-status-text">Not visible</span></li>
+          <li data-landmark="wrists" data-visible="false"><span class="landmark-dot" aria-hidden="true"></span>Wrists <span class="landmark-status-text">Not visible</span></li>
+          <li data-landmark="hips" data-visible="false"><span class="landmark-dot" aria-hidden="true"></span>Hips <span class="landmark-status-text">Not visible</span></li>
+          <li data-landmark="knees" data-visible="false"><span class="landmark-dot" aria-hidden="true"></span>Knees <span class="landmark-status-text">Not visible</span></li>
+          <li data-landmark="ankles" data-visible="false"><span class="landmark-dot" aria-hidden="true"></span>Ankles <span class="landmark-status-text">Not visible</span></li>
+        </ul>
+        <p id="legs-not-visible-warning" class="warning-message" hidden>
+          We can't see your legs clearly. Full-body marching won't register well from here —
+          <button id="btn-switch-seated" class="text-button">switch to Seated mode</button> instead?
+        </p>
+        <p id="calibration-progress" class="muted"></p>
+        <p id="calibration-step-label" class="calibration-instruction"></p>
+        <button id="btn-calibration-capture" class="primary-button">Hold still and Capture</button>
+        <button id="btn-calibration-skip" class="text-button">Skip calibration (use defaults)</button>
+      </div>
+    </section>
+
+    <!-- ========================= PRACTICE ========================= -->
+    <section id="screen-practice" class="screen" hidden>
+      <div class="panel">
+        <h1>Quick practice</h1>
+        <p class="muted">Try each control once — it checks off automatically.</p>
+        <ul class="practice-list">
+          <li data-practice-check="speed">
+            <span class="practice-check" aria-hidden="true">&#10003;</span>
+            <span data-mode-only="camera" hidden>March / swing your arms until the energy meter fills past halfway</span>
+            <span data-mode-only="keyboard" hidden>Hold Shift (or E) until the energy meter fills past halfway</span>
+          </li>
+          <li data-practice-check="MOVE_LEFT">
+            <span class="practice-check" aria-hidden="true">&#10003;</span>
+            <span data-mode-only="camera" hidden>Lean left</span>
+            <span data-mode-only="keyboard" hidden>Press &larr; or A</span>
+            <span> — move to the left lane</span>
+          </li>
+          <li data-practice-check="MOVE_RIGHT">
+            <span class="practice-check" aria-hidden="true">&#10003;</span>
+            <span data-mode-only="camera" hidden>Lean right</span>
+            <span data-mode-only="keyboard" hidden>Press &rarr; or D</span>
+            <span> — move to the right lane</span>
+          </li>
+          <li data-practice-check="JUMP">
+            <span class="practice-check" aria-hidden="true">&#10003;</span>
+            <span data-mode-only="camera" hidden>Raise both hands above your shoulders and hold briefly</span>
+            <span data-mode-only="keyboard" hidden>Press &uarr;, W, or Space</span>
+            <span> — jump</span>
+          </li>
+          <li data-practice-check="SLIDE">
+            <span class="practice-check" aria-hidden="true">&#10003;</span>
+            <span data-mode-only="camera" hidden>Squat down (or lower your upper body, if seated) and hold briefly</span>
+            <span data-mode-only="keyboard" hidden>Press &darr; or S</span>
+            <span> — slide under tables</span>
+          </li>
+        </ul>
+        <p class="muted">Press <kbd>Esc</kbd> or <kbd>P</kbd> any time to pause.</p>
+        <button id="btn-practice-continue" class="primary-button">Continue to Countdown</button>
+      </div>
+    </section>
+
+    <!-- ========================= COUNTDOWN ========================= -->
+    <section id="screen-countdown" class="screen screen-overlay" hidden>
+      <div id="countdown-number" class="countdown-number">3</div>
+    </section>
+
+    <!-- ===================== PAUSE / SETTINGS ===================== -->
+    <section id="screen-pause" class="screen" hidden>
+      <div class="panel">
+        <h1>Paused</h1>
+        <button id="btn-pause-resume" class="primary-button">Resume</button>
+        <button id="btn-pause-restart" class="secondary-button">Restart</button>
+        <button id="btn-pause-recalibrate" class="secondary-button">Recalibrate Camera</button>
+        <button id="btn-camera-disable" class="secondary-button">Turn Off Camera</button>
+        <button id="btn-pause-quit" class="text-button">Quit to Menu</button>
+
+        <hr />
+        <h2>Settings</h2>
+        <div class="settings-row">
+          <label for="sensitivity-slider">Lean/jump sensitivity</label>
+          <input type="range" id="sensitivity-slider" />
+          <span id="sensitivity-value">1.00</span>
+        </div>
+        <div class="settings-row">
+          <label for="swap-left-right">Swap left / right</label>
+          <input type="checkbox" id="swap-left-right" />
+        </div>
+        <div class="settings-row">
+          <label for="reduced-motion-toggle">Reduce decorative motion</label>
+          <input type="checkbox" id="reduced-motion-toggle" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================== TRACKING LOST ===================== -->
+    <section id="screen-tracking-lost" class="screen screen-overlay" hidden>
+      <div class="panel">
+        <h1>Tracking lost</h1>
+        <p>We can't see you clearly. Step back into frame and make sure you're well lit.</p>
+        <p class="muted">The game will resume automatically once tracking is stable (countdown: <span id="tracking-lost-countdown">3</span>).</p>
+        <button id="btn-tracking-lost-cancel" class="text-button">Quit to Menu</button>
+      </div>
+    </section>
+
+    <!-- ========================= GAME OVER ========================= -->
+    <section id="screen-game-over" class="screen" hidden>
+      <div class="panel">
+        <h1>Run Over</h1>
+        <p class="final-stats">
+          Score: <span id="final-score">0</span> &middot; Distance: <span id="final-distance">0m</span>
+        </p>
+        <button id="btn-gameover-restart" class="primary-button">Play Again</button>
+        <button id="btn-gameover-menu" class="secondary-button">Main Menu</button>
+      </div>
+    </section>
+
+    <!-- =========================== HELP =========================== -->
+    <div id="help-modal" class="modal" role="dialog" aria-modal="true" aria-labelledby="help-title" hidden>
+      <div class="panel">
+        <h2 id="help-title">Controls</h2>
+        <table class="help-table">
+          <thead><tr><th>Action</th><th>Body</th><th>Keyboard</th></tr></thead>
+          <tbody>
+            <tr><td>Speed up</td><td>March / swing arms rhythmically</td><td>Hold Shift / E</td></tr>
+            <tr><td>Move left</td><td>Lean left</td><td>&larr; / A</td></tr>
+            <tr><td>Move right</td><td>Lean right</td><td>&rarr; / D</td></tr>
+            <tr><td>Jump</td><td>Raise both hands above shoulders</td><td>&uarr; / W / Space</td></tr>
+            <tr><td>Slide</td><td>Squat / lower your body and hold</td><td>&darr; / S</td></tr>
+            <tr><td>Pause</td><td>&mdash;</td><td>Esc / P</td></tr>
+          </tbody>
+        </table>
+        <button id="btn-help-close" class="primary-button">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.4/p5.min.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
