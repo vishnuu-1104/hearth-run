@@ -1,4 +1,4 @@
-# Hearth Run — Interaction Design Document
+# Home Run — Interaction Design Document
 
 A companion to [README.md](README.md) (how it works) and [TESTING.md](TESTING.md) (what was verified). This document covers the *design reasoning*: who it's for, what problem the interaction solves, how decisions were made, and — importantly — which claims are validated versus merely intended.
 
@@ -12,7 +12,7 @@ The harder and more interesting question, and the one this project is built arou
 
 > **Can a continuous, effort-proportional body signal drive a continuous game variable, alongside discrete gestures, without the two interfering?**
 
-In Hearth Run, *how fast you run* is not a constant and not a difficulty curve — it is a direct, continuous function of how much rhythmic arm and leg activity you're producing right now. Steering, jumping and sliding remain discrete gestures layered on top.
+In Home Run, *how fast you run* is not a constant and not a difficulty curve — it is a direct, continuous function of how much rhythmic arm and leg activity you're producing right now. Steering, jumping and sliding remain discrete gestures layered on top.
 
 That combination is the actual design challenge, because the continuous signal and the discrete gestures are *read from the same body*. Raising both hands to jump is also arm movement. Squatting to slide is also vertical body motion — and so is marching. Most of the difficult decisions in this project come from disentangling those.
 

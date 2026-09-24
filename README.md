@@ -1,4 +1,4 @@
-# Hearth Run
+# Home Run
 
 A webcam-controlled, three-lane endless runner built with **p5.js** and **MediaPipe Tasks Vision (PoseLandmarker)**, made as an interaction design project. You dash through an endlessly continuing pastel house — corridor, living room, bedroom, corridor again — dodging furniture. The core twist: **your own marching and arm-swinging sets your running speed**, not a fixed auto-scroll.
 
@@ -8,7 +8,7 @@ This README explains what was built, why, and how to run it, and is explicit abo
 
 ## 1. Project overview
 
-**Concept.** Hearth Run keeps Subway Surfers' core loop — three lanes, obstacles, collectibles, rising difficulty — but replaces both the setting and the *nature* of the controls. Instead of a fixed auto-run speed with discrete swipe controls, the player's own **rhythmic body movement continuously drives how fast the character runs**, while lightweight discrete gestures (lean, two-hand raise) handle steering and jumping.
+**Concept.** Home Run keeps Subway Surfers' core loop — three lanes, obstacles, collectibles, rising difficulty — but replaces both the setting and the *nature* of the controls. Instead of a fixed auto-run speed with discrete swipe controls, the player's own **rhythmic body movement continuously drives how fast the character runs**, while lightweight discrete gestures (lean, two-hand raise) handle steering and jumping.
 
 **Intended users.** Someone in front of a laptop webcam, standing with room to march, or seated at a desk. The three control modes (full-body / seated / keyboard) are a direct response to "not everyone can or wants to stand up and march" — see section 5.
 
@@ -306,5 +306,5 @@ See **[TESTING.md](TESTING.md)** for the full breakdown: headless simulations th
 
 - **p5.js** v1.9.4 — LGPL-2.1/GPL-3.0, © the Processing Foundation. https://p5js.org
 - **MediaPipe Tasks Vision** (`@mediapipe/tasks-vision`) v0.10.14 and the **Pose Landmarker (full)** model — Apache License 2.0, © Google LLC.
-- Palette values supplied by the project brief; all other code, visuals ("Hearth Run," the house theme, furniture, and character), and this documentation were written for this project — no third-party game assets, textures, or audio were used.
+- Palette values supplied by the project brief; all other code, visuals ("Home Run," the house theme, furniture, and character), and this documentation were written for this project — no third-party game assets, textures, or audio were used.
 - **AI assistance disclosure**: this project (design, all source code, and documentation) was produced with Claude (Anthropic) as a coding assistant, from a detailed brief provided by the student/author, who reviewed and is responsible for the submitted work. Per sections 4 and 17, the assistant explicitly could not perform live-webcam or human-subject testing in this environment, and that limitation is disclosed rather than hidden throughout this README and in TESTING.md.
